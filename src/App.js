@@ -76,7 +76,7 @@ displayFaceBox = (box) => {
 
 onButtonSubmit = () => {
   this.setState({imageUrl: this.state.input});
-  fetch('https://protected-retreat-58932.herokuapp.com/imageurl', {
+  fetch('https://arcane-sea-64320.herokuapp.com/imageurl', {
           method: 'post',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
@@ -86,7 +86,7 @@ onButtonSubmit = () => {
     .then(response => response.json())
     .then(response => {
       if (response) {
-        fetch('https://protected-retreat-58932.herokuapp.com/image', {
+        fetch('https://arcane-sea-64320.herokuapp.com/image', {
           method: 'put',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
