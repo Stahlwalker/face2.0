@@ -17,7 +17,7 @@ class Signin extends React.Component {
     }
 
     onSubmitSignIn = () => {
-        fetch('https://arcane-sea-64320.herokuapp.com/signin', {
+        fetch('/.netlify/functions/signin', {
           method: 'post',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
@@ -32,6 +32,7 @@ class Signin extends React.Component {
               this.props.onRouteChange('home');
             }
           })
+          .catch(err => console.log('Sign in error:', err))
       }
       
     render() {

@@ -21,7 +21,7 @@ class Register extends React.Component {
     }
 
     onSubmitSignIn = () => {
-        fetch('https://arcane-sea-64320.herokuapp.com/register', {
+        fetch('/.netlify/functions/register', {
             method: 'post',
             headers: {'Content-Type': 'application/json'},
             body: JSON.stringify({
@@ -35,8 +35,14 @@ class Register extends React.Component {
             if (user.id) {
                 this.props.loadUser(user)
                 this.props.onRouteChange('home')
+            } else if (user.error) {
+                alert('Registration failed: ' + user.error)
             }
-        })  
+        })
+        .catch(err => {
+            console.log('Registration error:', err)
+            alert('Registration failed. Please try again.')
+        })
     }
 
     render() {

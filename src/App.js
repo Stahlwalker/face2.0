@@ -54,15 +54,25 @@ this.setState({user: {
 }
 
 calculateFaceLocation = (data) => {
-  const clarifaiFace = data.outputs[0].data.regions[0].region_info.bounding_box;
-  const image = document.getElementById('inputimage');
-  const width = Number(image.width);
-  const height = Number(image.height);
-  return {
-    leftCol: clarifaiFace.left_col * width,
-    topRow: clarifaiFace.top_row * height,
-    rightCol: width - (clarifaiFace.right_col * width),
-    bottomRow: height - (clarifaiFace.bottom_row * height)
+  try {
+    const clarifaiFace = data.outputs[0].data.regions[0].region_info.bounding_box;
+    const image = document.getElementById('inputimage');
+    const width = Number(image.width);
+    const height = Number(image.height);
+    return {
+      leftCol: clarifaiFace.left_col * width,
+      topRow: clarifaiFace.top_row * height,
+      rightCol: width - (clarifaiFace.right_col * width),
+      bottomRow: height - (clarifaiFace.bottom_row * height)
+    }
+  } catch (error) {
+    console.error('Error calculating face location:', error);
+    return {
+      leftCol: 0,
+      topRow: 0,
+      rightCol: 0,
+      bottomRow: 0
+    };
   }
 }
 
@@ -76,7 +86,7 @@ displayFaceBox = (box) => {
 
 onButtonSubmit = () => {
   this.setState({imageUrl: this.state.input});
-  fetch('https://arcane-sea-64320.herokuapp.com/imageurl', {
+  fetch('/.netlify/functions/imageurl', {
           method: 'post',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
@@ -85,8 +95,16 @@ onButtonSubmit = () => {
         })
     .then(response => response.json())
     .then(response => {
-      if (response) {
-        fetch('https://arcane-sea-64320.herokuapp.com/image', {
+      if (response.error) {
+        alert('Error: ' + response.error);
+        return;
+      }
+      if (response && response.outputs && response.outputs[0].data.regions && response.outputs[0].data.regions.length > 0) {
+        // Display face box first
+        this.displayFaceBox(this.calculateFaceLocation(response))
+
+        // Try to update entry count (non-blocking)
+        fetch('/.netlify/functions/image', {
           method: 'put',
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({
@@ -95,14 +113,21 @@ onButtonSubmit = () => {
         })
         .then(response => response.json())
         .then(count => {
-          this.setState(Object.assign(this.state.user, { entries: count}))
+          if (typeof count === 'number') {
+            this.setState(Object.assign(this.state.user, { entries: count}))
+          }
         })
-        .catch(console.log)
-
-    }
-      this.displayFaceBox(this.calculateFaceLocation(response))
+        .catch(err => {
+          console.log('Entry count update failed (this is okay):', err)
+        })
+      } else {
+        alert('No faces detected in the image. Please try another image.');
+      }
     })
-      .catch(err => console.log(err));
+      .catch(err => {
+        console.log(err);
+        alert('Failed to process image. Please try again.');
+      });
   }
 
 
